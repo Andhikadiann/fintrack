@@ -602,11 +602,14 @@ window.addEventListener('online',function(){P.online=true;renderSync();if(P.queu
 window.addEventListener('offline',function(){P.online=false;renderSync()});
 setInterval(function(){if(P.queue.length&&!P.flushing)flush()},20000);
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}
-/* Beberapa perangkat: saat aplikasi dibuka kembali dari latar belakang, ambil data terbaru (maks. sekali per 30 detik). */
-document.addEventListener('visibilitychange',function(){
+/* Beberapa perangkat: saat aplikasi dibuka kembali dari latar belakang, ambil data terbaru (maks. sekali per 30 detik, tidak saat form terbuka). */
+function autoRefresh(){
   if(document.visibilityState!=='visible'||!P.online||!S.token||!P.url)return;
+  if(document.querySelector('#ov.show'))return;
   if(Date.now()-(P.last||0)<30000)return;
   if(P.queue.length)flush();else refreshAll();
-});
+}
+document.addEventListener('visibilitychange',autoRefresh);
+window.addEventListener('pageshow',function(e){if(e.persisted)autoRefresh()});
 
 </script></body></html>
