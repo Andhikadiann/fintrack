@@ -61,6 +61,8 @@ input.nom{font-size:24px;font-weight:700}
 .chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:20px;padding:7px 14px;font-size:13px}
 .chip.on{background:var(--pri);color:var(--onpri);border-color:var(--pri);font-weight:700}
 .tag{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--warn);color:var(--out);margin-left:6px;font-weight:600}
+.hd{display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px}.hd h3{margin:0}
+.eye{border:0;background:none;color:var(--mut);padding:6px;border-radius:8px;line-height:0}.eye svg{width:22px;height:22px;display:block}
 .note{font-size:12px;color:var(--mut);margin-top:10px;line-height:1.5}
 #bz{position:fixed;top:0;left:0;right:0;height:3px;background:var(--pri);z-index:40;display:none}
 #sync{max-width:520px;margin:0 auto;padding:0 16px}
@@ -91,6 +93,15 @@ input.nom{font-size:24px;font-weight:700}
 <script>
 var MON=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 var S={tab:'sum',from:'',to:'',d:null,h:null,ht:'Hutang',token:'',err:''};
+var SRC=['Pribadi','Usaha','Kontrakan'];
+var EYE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+var EYE_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+var MASK='•••••';
+function hideLoad(){try{return JSON.parse(localStorage.getItem('ft_hide'))||{}}catch(e){return {}}}
+var HIDE=hideLoad();
+function hid(k){return !!HIDE[k]}
+function toggleHide(k){HIDE[k]=!HIDE[k];try{localStorage.setItem('ft_hide',JSON.stringify(HIDE))}catch(e){}render()}
+function secHead(k,title,sub){return '<div class="hd"><h3>'+title+(sub?' <span class="lab" style="font-weight:400">'+sub+'</span>':'')+'</h3><button class="eye" data-eye="'+k+'" aria-label="'+(hid(k)?'Tampilkan ':'Sembunyikan ')+title+'">'+(hid(k)?EYE_OFF:EYE)+'</button></div>'}
 function $(i){return document.getElementById(i)}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function p2(n){return n<10?'0'+n:''+n}
@@ -104,7 +115,7 @@ function setTok(v){try{if(v)localStorage.setItem('ft_tok',v);else localStorage.r
 function toast(m){var t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(function(){t.style.display='none'},2200)}
 function busy(b){$('bz').style.display=b?'block':'none'}
 function monthRange(off){var n=new Date(),a=new Date(n.getFullYear(),n.getMonth()+off,1),b=new Date(n.getFullYear(),n.getMonth()+off+1,0);return [ymd(a),ymd(b)]}
-var LBL={Pribadi:'Pribadi',Usaha:'Usaha',Umum:'Belum dipisah'};
+var LBL={Pribadi:'Pribadi',Usaha:'Usaha',Kontrakan:'Kontrakan',Umum:'Belum dipisah'};
 function nf(n){n=Number(n)||0;return (n<0?'-':'')+Math.abs(n).toLocaleString('id-ID')}
 function lbl(v){return LBL[v]||v}
 function presets(){
@@ -390,15 +401,16 @@ function vSum(){
     h+='<div class="g2" style="margin-top:12px"><div class="card" data-go="Hutang"><div class="lab">Hutang saya</div><div class="val out">'+money(hp.totalHutang)+'</div></div><div class="card" data-go="Piutang"><div class="lab">Piutang saya</div><div class="val in">'+money(hp.totalPiutang)+'</div></div></div>';
     if(hp.terlambat)h+='<div class="err" data-go="Hutang">'+hp.terlambat+' hutang atau piutang lewat jatuh tempo. Ketuk untuk melihat.</div>';
   }
-  h+='<h3>Uang pribadi dan uang usaha</h3><div class="card"><table><tr><th>Keperluan</th><th>Masuk</th><th>Keluar</th><th>Bersih</th></tr>';
-  ['Pribadi','Usaha','Umum'].forEach(function(k){var i=num(s['pemasukan'+k]),o=num(s['pengeluaran'+k]);if(k==='Umum'&&!i&&!o)return;h+='<tr><td>'+lbl(k)+'</td><td>'+nf(i)+'</td><td>'+nf(o)+'</td><td>'+nf(i-o)+'</td></tr>'});
-  h+='</table><div class="note">Angka dalam Rupiah.<br><b>Pribadi</b>: urusan rumah tangga dan pribadi. <b>Usaha</b>: urusan usaha. <b>Belum dipisah</b>: transaksi yang tidak dipilih salah satunya; sebaiknya dipilih Pribadi atau Usaha agar laporan tidak tercampur.</div></div>';
+  var m1=hid('ak'),m2=hid('pt'),m3=hid('sa');
+  h+=secHead('ak','Arus Kas','dalam Rupiah')+'<div class="card"><table><tr><th>Keperluan</th><th>Masuk</th><th>Keluar</th><th>Bersih</th></tr>';
+  ['Pribadi','Usaha','Kontrakan','Umum'].forEach(function(k){var i=num(s['pemasukan'+k]),o=num(s['pengeluaran'+k]);if(k==='Umum'&&!i&&!o)return;h+='<tr><td>'+lbl(k)+'</td><td>'+(m1?MASK:nf(i))+'</td><td>'+(m1?MASK:nf(o))+'</td><td>'+(m1?MASK:nf(i-o))+'</td></tr>'});
+  h+='</table></div>';
   var ks=(s.perKategori||[]).filter(function(k){return k.jenis==='Pengeluaran'}).slice(0,5),mx=ks.length?num(ks[0].total):1;
-  h+='<h3>Pengeluaran terbesar</h3><div class="card">';
+  h+=secHead('pt','Pengeluaran terbesar')+'<div class="card">';
   if(!ks.length)h+='<div class="lab">Belum ada pengeluaran pada periode ini.</div>';
-  ks.forEach(function(k){h+='<div class="sp"><span>'+esc(k.kategori)+'</span><b>'+money(k.total)+'</b></div><div class="bar"><i style="width:'+Math.round(num(k.total)/mx*100)+'%"></i></div>'});
-  h+='</div><h3>Saldo per akun</h3><div class="card">';
-  (s.saldoPerAkun||[]).forEach(function(a){h+='<div class="sp" style="padding:6px 0"><span>'+esc(a.nama_akun)+' <span class="lab">'+esc(a.jenis_akun)+'</span></span><b class="'+(a.saldo<0?'out':'')+'">'+money(a.saldo)+'</b></div>'});
+  ks.forEach(function(k){h+='<div class="sp"><span>'+esc(k.kategori)+'</span><b>'+(m2?MASK:money(k.total))+'</b></div>'+(m2?'<div style="height:10px"></div>':'<div class="bar"><i style="width:'+Math.round(num(k.total)/mx*100)+'%"></i></div>')});
+  h+='</div>'+secHead('sa','Saldo per akun')+'<div class="card">';
+  (s.saldoPerAkun||[]).forEach(function(a){h+='<div class="sp" style="padding:6px 0"><span>'+esc(a.nama_akun)+' <span class="lab">'+esc(a.jenis_akun)+'</span></span><b class="'+(!m3&&a.saldo<0?'out':'')+'">'+(m3?MASK:money(a.saldo))+'</b></div>'});
   return h+'</div>';
 }
 function vTx(){
@@ -453,12 +465,12 @@ function sendForm(btn,action,payload,okMsg){
 }
 
 /* ---------- form ---------- */
-function lastSrc(){try{return localStorage.getItem('ft_src')||'Pribadi'}catch(e){return 'Pribadi'}}
+function lastSrc(){try{var v=localStorage.getItem('ft_src');return SRC.indexOf(v)>=0?v:'Pribadi'}catch(e){return 'Pribadi'}}
 function setLastSrc(v){try{localStorage.setItem('ft_src',v)}catch(e){}}
 function catOpts(cats,kep,cur){
-  var m=cats.filter(function(c){return c.sumber_default===kep}),u=kep==='Umum'?[]:cats.filter(function(c){return c.sumber_default==='Umum'}),o=cats.filter(function(c){return m.indexOf(c)<0&&u.indexOf(c)<0});
+  var m=cats.filter(function(c){return c.sumber_default===kep}),o=cats.filter(function(c){return m.indexOf(c)<0});
   function grp(l,a){return a.length?'<optgroup label="'+esc(l)+'">'+opts(a,cur,'nama_kategori','nama_kategori')+'</optgroup>':''}
-  return grp(lbl(kep),m)+grp('Belum dipisah',u)+grp('Lainnya',o)+'<option value="__new__">+ Kategori baru...</option>';
+  return grp(lbl(kep),m)+grp('Lainnya',o)+'<option value="__new__">+ Kategori baru...</option>';
 }
 function sendSteps(btn,steps,okMsg){
   btn.disabled=true;
@@ -471,7 +483,7 @@ function txForm(jenis,ex){
   var src=ex?ex.sumber:lastSrc(),cur=ex?ex.kategori:'',accs=d.accounts,tgl=ex?ex.tanggal:ymd(new Date());
   var body='<label>Tanggal</label><input type="date" id="f_tgl" value="'+esc(tgl)+'">'
    +'<label>'+(jenis==='Pemasukan'?'Masuk ke akun':'Dibayar dari akun')+'</label><select id="f_akun">'+opts(accs,ex?ex.akun_id:'','akun_id','nama_akun')+'</select>'
-   +'<label>Untuk keperluan</label>'+segHtml('f_src',['Pribadi','Usaha','Umum'],src)
+   +'<label>Untuk keperluan</label>'+segHtml('f_src',ex&&ex.sumber==='Umum'?SRC.concat(['Umum']):SRC,src)
    +'<label>Kategori</label><select id="f_kat">'+catOpts(cats,src,cur)+'</select><input id="f_new" placeholder="Nama kategori baru" style="display:none;margin-top:8px">'
    +'<label>Nominal</label><input class="nom" id="f_nom" inputmode="numeric" placeholder="0" value="'+(ex?num(ex.nominal).toLocaleString('id-ID'):'')+'">'
    +'<label>Catatan (opsional)</label><input id="f_des" value="'+esc(ex?ex.deskripsi:'')+'">'
@@ -521,7 +533,7 @@ function accForm(){
   $('a_ok').onclick=function(){var n=$('a_n').value.trim();if(!n)return ferr('Isi nama akun.');sendForm(this,'addAccount',{nama_akun:n,jenis_akun:$('a_j').value,saldo_awal:nomVal('a_s')},'Akun ditambahkan')};
 }
 function catForm(){
-  openSheet('Tambah kategori','<label>Nama kategori</label><input id="c_n"><label>Jenis</label>'+segHtml('c_j',['Pemasukan','Pengeluaran'],'Pengeluaran')+'<label>Untuk keperluan (bawaan)</label>'+segHtml('c_s',['Pribadi','Usaha','Umum'],'Pribadi')+'<button class="btn" id="c_ok">Tambah</button>');
+  openSheet('Tambah kategori','<label>Nama kategori</label><input id="c_n"><label>Jenis</label>'+segHtml('c_j',['Pemasukan','Pengeluaran'],'Pengeluaran')+'<label>Untuk keperluan (bawaan)</label>'+segHtml('c_s',SRC,'Pribadi')+'<button class="btn" id="c_ok">Tambah</button>');
   segBind('c_j');segBind('c_s');
   $('c_ok').onclick=function(){var n=$('c_n').value.trim();if(!n)return ferr('Isi nama kategori.');sendForm(this,'addCategory',{nama_kategori:n,jenis:segGet('c_j'),sumber_default:segGet('c_s')},'Kategori ditambahkan')};
 }
@@ -610,6 +622,7 @@ $('main').onclick=function(e){
     if(el.getAttribute&&el.getAttribute('data-arc')){var id=el.getAttribute('data-arc');confirmBox('Arsipkan akun ini? Hanya bisa jika saldonya nol.','Arsipkan').then(function(y){if(y){busy(true);call('archiveAccount',{akun_id:id}).then(function(){toast('Diarsipkan');return refreshAll()}).catch(function(er){toast(er.message)}).then(function(){busy(false)})}});return}
     var g=el.getAttribute&&el.getAttribute.bind(el);
     if(g&&g('data-q'))return qSheet(g('data-q'));
+    if(g&&g('data-eye')){toggleHide(g('data-eye'));return}
     if(g&&g('data-go')){S.ht=g('data-go');S.tab='hut';if(!S.h)loadH();render();return}
     if(g&&g('data-ht')){S.ht=g('data-ht');render();return}
     if(g&&g('data-hp')){hpDetail(g('data-hp'));return}
