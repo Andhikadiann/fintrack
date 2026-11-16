@@ -37,7 +37,8 @@ th:first-child,td:first-child{text-align:left;font-weight:600}
 .amt{font-weight:700;font-size:14px;white-space:nowrap}
 nav{position:fixed;bottom:0;left:0;right:0;z-index:5;background:var(--card);border-top:1px solid var(--line)}
 nav div{max-width:520px;margin:0 auto;display:flex}
-nav button{flex:1;border:0;background:none;color:var(--mut);padding:11px 0 13px;font-size:12px}
+nav button{flex:1;border:0;background:none;color:var(--mut);padding:8px 0 10px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button svg{width:22px;height:22px;display:block}
 nav button.on{color:var(--pri);font-weight:700}
 #fab{position:fixed;right:max(16px,calc(50vw - 244px));bottom:72px;z-index:6;border:0;border-radius:16px;background:var(--pri);color:var(--onpri);padding:14px 20px;font-size:15px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 #ov{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
@@ -100,7 +101,7 @@ input.nom{font-size:24px;font-weight:700}
 <div id="sync"></div>
  <main id="main"><div class="empty">Memuat...</div></main>
  <button id="fab">+ Catat</button>
- <nav><div><button data-t="sum" class="on">Ringkasan</button><button data-t="tx">Transaksi</button><button data-t="kin">Kinerja</button><button data-t="hut">Hutang</button><button data-t="acc">Akun</button></div></nav>
+ <nav><div><button data-t="sum" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Ringkasan</span></button><button data-t="tx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg><span>Transaksi</span></button><button data-t="kin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Kinerja</span></button><button data-t="hut"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span>Hutang</span></button><button data-t="acc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Setting</span></button></div></nav>
 </div>
 <div id="ov"><div class="sheet" id="sheet"></div></div>
 <div id="toast"></div>
@@ -450,7 +451,7 @@ function vSum(){
   h+=secHead('sa','Saldo per akun');
   if(!hid('sa')){
     h+='<div class="card">';
-    (s.saldoPerAkun||[]).forEach(function(a){h+='<div class="sp" style="padding:6px 0"><span>'+esc(a.nama_akun)+' <span class="lab">'+esc(a.jenis_akun)+'</span></span><b class="'+(a.saldo<0?'out':'')+'">'+money(a.saldo)+'</b></div>'});
+    (s.saldoPerAkun||[]).slice().sort(function(a,b){return num(b.saldo)-num(a.saldo)||String(a.nama_akun).localeCompare(String(b.nama_akun),'id')}).forEach(function(a){h+='<div class="sp" style="padding:6px 0"><span>'+esc(a.nama_akun)+' <span class="lab">'+esc(a.jenis_akun)+'</span></span><b class="'+(a.saldo<0?'out':'')+'">'+money(a.saldo)+'</b></div>'});
     h+='</div>';
   }
   return h;
@@ -475,10 +476,14 @@ function vTx(){
   return h+'</div>';
 }
 function vAcc(){
-  var h='<div class="card" style="padding:4px 14px">',sa=S.d.summary.saldoPerAkun||[];
-  sa.forEach(function(a){h+='<div class="row"><div class="av">'+esc(String(a.nama_akun).charAt(0).toUpperCase())+'</div><div class="mid"><b>'+esc(a.nama_akun)+'</b><span>'+esc(a.jenis_akun)+'</span></div><div class="amt '+(a.saldo<0?'out':'')+'">'+money(a.saldo)+'</div><button class="ib" data-arc="'+esc(a.akun_id)+'">Arsipkan</button></div>'});
-  h+='</div><button class="btn" id="bAddAcc">Tambah akun</button><button class="btn sec" id="bAddCat">Tambah kategori</button><button class="btn sec" id="bDelCat">Hapus kategori</button><button class="btn sec" id="bOut">Keluar (hapus token dari perangkat ini)</button>';
-  return h;
+  return '<div class="kt"><b>Setting</b></div><button class="btn" id="bAddAcc">Tambah akun</button><button class="btn sec" id="bDelAcc">Hapus akun</button><button class="btn sec" id="bAddCat">Tambah kategori</button><button class="btn sec" id="bDelCat">Hapus kategori</button><button class="btn sec" id="bOut">Keluar (hapus token dari perangkat ini)</button>';
+}
+function accDelForm(){
+  var sa=(S.d.summary.saldoPerAkun||[]).slice().sort(function(a,b){var za=Math.round(num(a.saldo))===0,zb=Math.round(num(b.saldo))===0;return (zb-za)||String(a.nama_akun).localeCompare(String(b.nama_akun),'id')});
+  var can=sa.filter(function(a){return Math.round(num(a.saldo))===0}).length;
+  var o=sa.map(function(a){var z=Math.round(num(a.saldo))===0;return '<option value="'+esc(a.akun_id)+'"'+(z?'':' disabled')+'>'+esc(a.nama_akun)+' · '+esc(a.jenis_akun)+(z?'':' (saldo '+money(a.saldo)+')')+'</option>'}).join('');
+  openSheet('Hapus akun','<p class="lab">Akun yang dihapus disembunyikan dari pilihan. Riwayat transaksinya tetap utuh. Hanya akun bersaldo Rp 0 yang bisa dihapus. Untuk akun yang masih ada saldonya, pindahkan dulu lewat Transfer.</p>'+(can?'<label>Pilih akun</label><select id="da_k">'+o+'</select><button class="btn del" id="da_ok">Hapus akun</button>':'<div class="err">Belum ada akun bersaldo Rp 0 yang bisa dihapus.</div>'));
+  if(can)$('da_ok').onclick=function(){var sel=$('da_k'),id=sel.value,nm=sel.options[sel.selectedIndex].text.split(' · ')[0];confirmBox('Hapus akun "'+nm+'"?','Hapus').then(function(y){if(y)doW('archiveAccount',{akun_id:id},'Akun dihapus')})};
 }
 function catDelForm(){
   var cats=(S.d.categories||[]).filter(function(c){return c.nama_kategori!=='Hutang piutang'});
@@ -752,12 +757,11 @@ $('fab').onclick=function(){openSheet('Catat','<button class="btn" id="m1">Pemas
   $('m1').onclick=function(){txForm('Pemasukan')};$('m2').onclick=function(){txForm('Pengeluaran')};$('m3').onclick=tfForm;$('m4').onclick=function(){hpForm()}};
 $('per').onclick=periodForm;
 $('rf').onclick=refreshAll;
-document.querySelector('nav').onclick=function(e){var t=e.target.getAttribute&&e.target.getAttribute('data-t');if(t){S.tab=t;if(t==='hut'&&!S.h)loadH();if(t==='kin'&&!S.k)loadK();render()}};
+document.querySelector('nav').onclick=function(e){var nb=e.target.closest?e.target.closest('[data-t]'):null,t=nb&&nb.getAttribute('data-t');if(t){S.tab=t;if(t==='hut'&&!S.h)loadH();if(t==='kin'&&!S.k)loadK();render()}};
 $('main').onclick=function(e){
   var el=e.target,i;
   while(el&&el!==this){
     if(el.getAttribute&&el.getAttribute('data-pre')){var pr=el.getAttribute('data-pre');if(pr==='custom')periodForm();else setPreset(pr);return}
-    if(el.getAttribute&&el.getAttribute('data-arc')){var id=el.getAttribute('data-arc');confirmBox('Arsipkan akun ini? Hanya bisa jika saldonya nol.','Arsipkan').then(function(y){if(y){busy(true);call('archiveAccount',{akun_id:id}).then(function(){toast('Diarsipkan');return refreshAll()}).catch(function(er){toast(er.message)}).then(function(){busy(false)})}});return}
     var g=el.getAttribute&&el.getAttribute.bind(el);
     if(g&&g('data-q'))return qSheet(g('data-q'));
     if(g&&g('data-km')){S.km=g('data-km');S.kAll=false;render();return}
@@ -769,6 +773,7 @@ $('main').onclick=function(e){
     if(g&&g('data-hp')){hpDetail(g('data-hp'));return}
     if(el.id==='bAddHp')return hpForm(S.ht);
     if(el.id==='bDelCat')return catDelForm();
+    if(el.id==='bDelAcc')return accDelForm();
     if(el.id==='bAddAcc')return accForm();
     if(el.id==='bAddCat')return catForm();
     if(el.id==='bOut')return doLogout();
