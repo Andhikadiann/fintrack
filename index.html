@@ -439,12 +439,12 @@ function vSum(){
     ['Pribadi','Usaha','Kontrakan','Umum'].forEach(function(k){var i=num(s['pemasukan'+k]),o=num(s['pengeluaran'+k]);if(k==='Umum'&&!i&&!o)return;h+='<tr><td>'+lbl(k)+'</td><td>'+nf(i)+'</td><td>'+nf(o)+'</td><td>'+nf(i-o)+'</td></tr>'});
     h+='</table></div>';
   }
-  var ks=(s.perKategori||[]).filter(function(k){return k.jenis==='Pengeluaran'}).slice(0,5),mx=ks.length?num(ks[0].total):1;
-  h+=secHead('pt','Pengeluaran terbesar');
+  var ks=(s.perKategori||[]).filter(function(k){return k.jenis==='Pengeluaran'}),tp=num(s.totalPengeluaran);
+  h+=secHead('pt','Total pengeluaran');
   if(!hid('pt')){
-    h+='<div class="card">';
+    h+='<div class="card"><div class="sp" style="padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:10px"><b>Total</b><b style="font-size:17px">'+money(tp)+'</b></div>';
     if(!ks.length)h+='<div class="lab">Belum ada pengeluaran pada periode ini.</div>';
-    ks.forEach(function(k){h+='<div class="sp"><span>'+esc(k.kategori)+'</span><b>'+money(k.total)+'</b></div><div class="bar"><i style="width:'+Math.round(num(k.total)/mx*100)+'%"></i></div>'});
+    ks.forEach(function(k){var w=tp>0?Math.min(100,num(k.total)/tp*100):0;h+='<div class="sp"><span>'+esc(k.kategori)+'</span><b>'+money(k.total)+'</b></div><div class="bar"><i style="width:'+w.toFixed(1)+'%;min-width:3px"></i></div>'});
     h+='</div>';
   }
   h+=secHead('sa','Saldo per akun');
@@ -655,8 +655,6 @@ function hpForm(jenis0){
 /* ---------- kinerja usaha ---------- */
 var MONF=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 var DAYN=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
-function fjt(n){return Math.abs(n)>=1e6?'Rp '+(n/1e6).toLocaleString('id-ID',{maximumFractionDigits:1})+' jt':money(n)}
-function jt(n){return n?(n/1e6).toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:2})+' jt':'-'}
 function rbu(n){return Math.round(n/1000)+' rb'}
 function pct1(g){return (g>=0?'+':'-')+Math.abs(g).toFixed(1).replace('.',',')+'%'}
 function kApply(k){
@@ -717,24 +715,24 @@ function kBulanan(k,th,y){
   var L=full.length?full[full.length-1]:-1,P2=L-1,g=null,df=0;
   if(L>0&&ms[P2].o>0){g=(ms[L].o-ms[P2].o)/ms[P2].o*100;df=ms[L].o-ms[P2].o}
   var h=tiles([
-    ['Omzet '+y,fjt(tot),MON[0]+' sampai '+MON[last]],
-    ['Rata-rata per bulan',avg===null?'-':fjt(avg),full.length?full.length+' bulan penuh':(curM>=0&&ms[curM].o>0?'baru bulan berjalan':'Belum ada data')],
-    ['Bulan terbaik',best<0?'-':MONF[best],best<0?'Belum ada data':fjt(ms[best].o)],
-    [L>0?MON[L]+' dibanding '+MON[P2]:'Pertumbuhan',g===null?'-':pct1(g),g===null?'Belum cukup data':(df>=0?'naik ':'turun ')+fjt(Math.abs(df)),g===null?'':(g>=0?'in':'out')]
+    ['Omzet '+y,money(tot),MON[0]+' sampai '+MON[last]],
+    ['Rata-rata per bulan',avg===null?'-':money(avg),full.length?full.length+' bulan penuh':(curM>=0&&ms[curM].o>0?'baru bulan berjalan':'Belum ada data')],
+    ['Bulan terbaik',best<0?'-':MONF[best],best<0?'Belum ada data':money(ms[best].o)],
+    [L>0?MON[L]+' dibanding '+MON[P2]:'Pertumbuhan',g===null?'-':pct1(g),g===null?'Belum cukup data':(df>=0?'naik ':'turun ')+money(Math.abs(df)),g===null?'':(g>=0?'in':'out')]
   ]);
   var mx=Math.max.apply(null,ms.map(function(x){return x.o}))||1,hi=curY?curM:best,bars='',lb='';
   ms.forEach(function(x,i){
     var hh=x.o?Math.max(4,Math.round(x.o/mx*104)):2;
-    bars+='<div>'+(i===hi&&x.o?'<span>'+(x.o/1e6).toLocaleString('id-ID',{maximumFractionDigits:1})+'</span>':'')+'<i class="'+(i===hi?'hi':'')+'" style="height:'+hh+'px"></i></div>';
+    bars+='<div><i class="'+(i===hi?'hi':'')+'" style="height:'+hh+'px"></i></div>';
     lb+='<span>'+MON[i]+'</span>';
   });
-  h+='<div class="card"><div class="sp"><b>Omzet per bulan</b><span class="lab">juta rupiah</span></div><div class="bars">'+bars+'</div><div class="lb">'+lb+'</div></div>';
+  h+='<div class="card"><div class="sp"><b>Omzet per bulan</b><span class="lab">rupiah'+(hi>=0&&ms[hi]&&ms[hi].o?' · '+MON[hi]+': '+nf(ms[hi].o):'')+'</span></div><div class="bars">'+bars+'</div><div class="lb">'+lb+'</div></div>';
   h+='<h3>Rincian bulanan</h3><div class="card" style="padding:6px 14px"><div class="rw rh"><span>Bulan</span><span>Omzet</span><span>Keluar</span><span>Vs bulan lalu</span></div>';
   var idx=[];for(var i=last;i>=0;i--)idx.push(i);
   (S.kAll?idx:idx.slice(0,6)).forEach(function(i){
     var x=ms[i],gv='-',cl='';
     if(i===curM){gv='berjalan';cl=''}else if(i>0&&ms[i-1].o>0&&x.o>0){var gg=(x.o-ms[i-1].o)/ms[i-1].o*100;gv=pct1(gg);cl=gg>=0?'in':'out'}
-    h+='<div class="rw"><span>'+(i===curM?MON[i]+' (berjalan)':MONF[i])+'</span><span>'+jt(x.o)+'</span><span>'+jt(x.k)+'</span><span class="'+cl+'"'+(gv==='berjalan'||gv==='-'?' style="color:var(--mut)"':'')+'>'+gv+'</span></div>';
+    h+='<div class="rw"><span>'+(i===curM?MON[i]+' (berjalan)':MONF[i])+'</span><span>'+(x.o?nf(x.o):'-')+'</span><span>'+(x.k?nf(x.k):'-')+'</span><span class="'+cl+'"'+(gv==='berjalan'||gv==='-'?' style="color:var(--mut)"':'')+'>'+gv+'</span></div>';
   });
   h+='</div>';
   if(idx.length>6)h+='<button class="btn sec" id="kAll">'+(S.kAll?'Ringkas':'Tampilkan semua bulan')+'</button>';
