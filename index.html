@@ -107,7 +107,8 @@ input.nom{font-size:24px;font-weight:700}
 <div id="toast"></div>
 <script>
 var MON=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-var S={tab:'sum',from:'',to:'',d:null,h:null,k:null,kb:'',km:'harian',kAll:false,ht:'Hutang',token:'',err:''};
+var APP_VER='v14',APP_BUILD='2026-11-18 01:44';
+var S={tab:'sum',from:'',to:'',d:null,h:null,k:null,kb:'',km:'harian',kAll:false,ht:'Hutang',token:'',err:'',lim:300,step:300};
 var SRC=['Pribadi','Usaha','Kontrakan'];
 var EYE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
 var EYE_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
@@ -153,7 +154,7 @@ function loadK(){
 }
 function refreshAll(){var p=[load()];if(S.k||S.tab==='kin')p.push(loadK());return Promise.all(p)}
 function doW(action,payload,okMsg){busy(true);return call(action,payload).then(function(){toast(okMsg);return refreshAll()}).catch(function(e){toast(e.message)}).then(function(){busy(false)})}
-function setPeriod(a,b,id){S.from=a;S.to=b;saveRange(id);load()}
+function setPeriod(a,b,id){S.from=a;S.to=b;S.lim=S.step;saveRange(id);load()}
 function setPreset(id){var ps=presets();for(var i=0;i<ps.length;i++)if(ps[i].id===id)setPeriod(ps[i].r[0],ps[i].r[1],id)}
 function restoreRange(){
   var v='today';try{v=localStorage.getItem('ft_per')||'today'}catch(e){}
@@ -371,7 +372,7 @@ function failSheet(){
 
 /* ---- masuk, keluar, mulai ---- */
 function showPin(msg){
-  openSheet('Sambungkan ke Google Sheet','<p class="lab">Isi URL Web App dan token yang sama dengan API_TOKEN di Code.gs. Disimpan hanya di perangkat ini.</p>'+(msg?'<div class="err">'+esc(msg)+'</div>':'')+'<label>URL Web App</label><input id="su" placeholder="https://script.google.com/macros/s/.../exec" value="'+esc(P.url)+'"><label>Token</label><input type="password" id="pin" placeholder="Token"><button class="btn" id="pgo">Hubungkan</button>');
+  openSheet('Sambungkan ke Google Sheet','<p class="lab">Isi URL Web App dan token yang kamu simpan di Apps Script lewat fungsi simpanToken. Disimpan hanya di perangkat ini.</p>'+(msg?'<div class="err">'+esc(msg)+'</div>':'')+'<label>URL Web App</label><input id="su" placeholder="https://script.google.com/macros/s/.../exec" value="'+esc(P.url)+'"><label>Token</label><input type="password" id="pin" placeholder="Token"><button class="btn" id="pgo">Hubungkan</button>');
   $('xs').style.display='none';
   $('pgo').onclick=function(){
     var u=$('su').value.trim(),v=$('pin').value.trim();
@@ -402,7 +403,7 @@ function load(){
   var pk=peekCache(S.from,S.to);            // tampilkan data tersimpan lebih dulu, lalu segarkan di latar belakang
   if(pk){setD(pk);if(pk.hutang)setH(pk.hutang);S.err='';render()}
   busy(true);
-  return call('bootstrap',{from:S.from,to:S.to}).then(function(r){saveCache(S.from,S.to,r);setD(r);if(r.hutang)setH(r.hutang);S.err='';render()}).catch(function(e){
+  return call('bootstrap',{from:S.from,to:S.to,limit:S.lim}).then(function(r){saveCache(S.from,S.to,r);setD(r);if(r.hutang)setH(r.hutang);S.err='';render()}).catch(function(e){
     S.err=e.message;
     if(/Unauthorized/.test(e.message)){S.token='';setTok('');showPin('Token salah, coba lagi.')}
     render();
@@ -473,10 +474,14 @@ function vTx(){
     else{title=t.kategori;sub=accName(t.akun_id)+' · '+lbl(t.sumber)+(t.deskripsi?' · '+t.deskripsi:'')}
     h+='<div class="row" data-k="'+x.k+'" data-id="'+esc(x.k==='hm'?t.hutang_id:t.id)+'"'+(t._q?' data-q="'+esc(t._q)+'"':'')+'><div class="av '+cls+'">'+ic+'</div><div class="mid"><b>'+esc(title)+(t._q?'<span class="tag" style="background:var(--soft);color:var(--pri)">menunggu kirim</span>':'')+'</b><span>'+esc(sub)+'</span><span>'+fdate(t.tanggal)+'</span></div><div class="amt '+cls+'">'+(neutral?'':(inc?'+':'-'))+money(t.nominal)+'</div></div>';
   });
-  return h+'</div>';
+  h+='</div>';
+  if(S.d.listTotal>S.d.listShown)h+='<div class="note" style="text-align:center">Menampilkan '+S.d.listShown+' dari '+S.d.listTotal+' transaksi pada periode ini. Sisanya tetap tersimpan di Google Sheet.</div><button class="btn sec" id="bMore">Muat lebih banyak</button>';
+  return h;
 }
 function vAcc(){
-  return '<div class="kt"><b>Setting</b></div><button class="btn" id="bAddAcc">Tambah akun</button><button class="btn sec" id="bDelAcc">Hapus akun</button><button class="btn sec" id="bAddCat">Tambah kategori</button><button class="btn sec" id="bDelCat">Hapus kategori</button><button class="btn sec" id="bOut">Keluar (hapus token dari perangkat ini)</button>';
+  var sv=S.d&&S.d.ver,warn='';
+  if(sv!==APP_VER)warn='<div class="err" style="margin-top:12px">'+(sv?'Versi server ('+esc(sv)+') berbeda dari aplikasi ('+APP_VER+'). Tempel Code.gs terbaru ke Apps Script, lalu deploy versi baru.':'Server belum mengirim nomor versi, kemungkinan Code.gs masih versi lama. Tempel Code.gs terbaru ke Apps Script, lalu deploy versi baru.')+'</div>';
+  return '<div class="kt"><b>Setting</b></div>'+warn+'<button class="btn" id="bAddAcc">Tambah akun</button><button class="btn sec" id="bDelAcc">Hapus akun</button><button class="btn sec" id="bAddCat">Tambah kategori</button><button class="btn sec" id="bDelCat">Hapus kategori</button><button class="btn sec" id="bOut">Keluar (hapus token dari perangkat ini)</button><div class="note" style="text-align:center;margin-top:24px">FinTrack '+APP_VER+' · build '+APP_BUILD+'<br>Server: '+(sv?esc(sv):'tidak diketahui')+'</div>';
 }
 function accDelForm(){
   var sa=(S.d.summary.saldoPerAkun||[]).slice().sort(function(a,b){var za=Math.round(num(a.saldo))===0,zb=Math.round(num(b.saldo))===0;return (zb-za)||String(a.nama_akun).localeCompare(String(b.nama_akun),'id')});
@@ -774,6 +779,7 @@ $('main').onclick=function(e){
     if(el.id==='bAddHp')return hpForm(S.ht);
     if(el.id==='bDelCat')return catDelForm();
     if(el.id==='bDelAcc')return accDelForm();
+    if(el.id==='bMore'){if(typeof P!=='undefined'&&P.online===false){toast('Butuh internet untuk memuat lebih banyak.');return}S.lim+=S.step;load();return}
     if(el.id==='bAddAcc')return accForm();
     if(el.id==='bAddCat')return catForm();
     if(el.id==='bOut')return doLogout();
